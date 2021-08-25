@@ -102,7 +102,6 @@ game_manager
 		// Set the round winner:  0 == AXIS, 1 == ALLIED
 		wm_setwinner 1
 		
-		wait 5000
 
 		// move the submarine
 		trigger submarine allies_woo
