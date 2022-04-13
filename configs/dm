@@ -1,0 +1,18 @@
+//
+// RTCWPro Deathmatch Config
+//
+
+configname "^1RTCWPro ^7Deathmatch HITSOUNDS"
+
+// server settings
+seta g_gametype "5"
+seta g_alliedmaxlives "3"
+seta g_axismaxlives "3"
+seta g_useraxisrespawntime "10"
+seta g_useralliedrespawntime "10"
+seta dmflags "11"
+seta g_medicclips "6"
+seta g_warmup "15"
+seta g_hitsounds "1"
+seta g_dropWeapons "4" // allow drop weapon for each class, bitflag value: 1 - soldier, 2 - eng, 4 - medic, 8 - lt, default 9
+seta g_hsDamage "50"
