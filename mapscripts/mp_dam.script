@@ -1,0 +1,401 @@
+//
+//Brush Scripting
+//Map: mp_dam
+//Last edited by: Wils
+//
+
+game_manager
+{
+	spawn
+	{
+		// Set scenario information
+
+		wm_mapdescription		"Allied forces are attempting to destroy an Axis dam to flood the military installation below."
+
+		// Set the respawn times
+
+		wm_allied_respawntime		20
+		wm_axis_respawntime			30
+
+		wm_set_round_timelimit		10
+
+		// 1 - Primary: Main Water Regulator
+		// 2 - Primary: Service Halls Doors
+		// 3 - Secondary: Main Doors
+		// 4 - Secondary: Generator Controls
+		// 5 - Secondary: Lower Dam Door
+		// 6 - Secondary: Upper Dam Door
+
+		// Set the number of objectives for the map
+		wm_number_of_objectives		6
+
+		// Axis control all objectives at the start (0 == AXIS, 1 == ALLIED)
+		wm_set_objective_status		1	0
+		wm_set_objective_status		2	0
+		wm_set_objective_status		3	0
+		wm_set_objective_status		4	-1
+		wm_set_objective_status		5	0
+		wm_set_objective_status		6	0
+		wm_objective_allied_desc	1	"Primary Objective:**Destroy the Main Water Regulator."
+		wm_objective_allied_desc	2	"Primary Objective:**Breach the Lower Service Halls."
+		wm_objective_allied_desc	3	"Secondary Objective:**Destroy the Main Dam Road Doors."
+		wm_objective_allied_desc	4	"Secondary Objective:**Secure the Generator Control Room."
+		wm_objective_allied_desc	5	"Secondary Objective:**Breach the Lower Dam Tunnels."
+		wm_objective_allied_desc	6	"Secondary Objective:**Breach the Upper Dam Stairwell."
+		wm_objective_axis_desc		1	"Primary Objective:**Defend the Main Water Regulator."
+		wm_objective_axis_desc		2	"Primary Objective:**Prevent the Allies from gaining access to the Service Halls."
+		wm_objective_axis_desc		3	"Secondary Objective:**Defend the Main Dam Road Doors."
+		wm_objective_axis_desc		4	"Secondary Objective:**Secure the Generator Control Room."
+		wm_objective_axis_desc		5	"Secondary Objective:**Prevent the Allies from gaining access to the Lower Dam Tunnels."
+		wm_objective_axis_desc		6	"Secondary Objective:**Prevent the Allies from gaining access to the Upper Dam Stairwell."
+		wm_overview_image			"video/mp_dam.roq"
+		wm_objective_image			1	"gfx/2d/mp_objectives/dam_obj_1.tga"
+		wm_objective_image			2	"gfx/2d/mp_objectives/dam_obj_2.tga"
+		wm_objective_image			3	"gfx/2d/mp_objectives/dam_obj_3.tga"
+		wm_objective_image			4	"gfx/2d/mp_objectives/dam_obj_4.tga"
+		wm_objective_image			5	"gfx/2d/mp_objectives/dam_obj_5.tga"
+		wm_objective_image			6	"gfx/2d/mp_objectives/dam_obj_6.tga"
+
+		// SHORT DESCRIPTIONS
+
+		wm_objective_short_axis_desc	1	"Defend the Main Water Regulator"
+		wm_objective_short_axis_desc	2	"Hold the Service Halls Doors"
+		wm_objective_short_axis_desc	3	"Defend the Main Dam Road Doors"
+		wm_objective_short_axis_desc	4	"Secure the Generator Control Room"
+		wm_objective_short_axis_desc	5	"Hold the Lower Dam Tunnel Door"
+		wm_objective_short_axis_desc	6	"Hold the Upper Dam Stairwell Door"
+
+		wm_objective_short_allied_desc	1	"Destroy the Main Water Regulator"
+		wm_objective_short_allied_desc	2	"Breach the Service Halls"
+		wm_objective_short_allied_desc	3	"Destroy the Main Dam Road Doors"
+		wm_objective_short_allied_desc	4	"Secure the Generator Control Room"
+		wm_objective_short_allied_desc	5	"Destroy the Lower Dam Tunnel Door"
+		wm_objective_short_allied_desc	6	"Destroy the Upper Dam Stairwell Door"
+
+		// Set Defending Team for SW Mode
+		wm_set_defending_team	0
+
+		// If the round timer expires, the Axis have won, so set the current winning team
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 0
+
+		// Accum #1 will be the state of objective number one
+		accum 1 set 0
+
+		// Accum #2 will check the state of the two service doors so the relevant spawns are only toggled once
+		accum 2 set 0
+	}
+
+// 1 - Primary: Main Water Regulator
+	trigger objective1
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		1	1
+
+		// Change the variable within the script so that we can check if someone wins the round
+		accum 1 set 1
+
+		// UI pop-up to alert players
+		wm_announce	"The Main Water Regulator has been destroyed!"
+
+		// Call function to check if the round has been won
+		trigger game_manager checkgame
+	}
+
+	trigger checkgame
+	{
+		accum 1 abort_if_not_equal 1
+
+		// Set the round winner:  0 == AXIS, 1 == ALLIED
+		wm_setwinner 1
+
+		wait 1500
+
+		// End the round
+		wm_endround
+	}
+
+// 2 - Secondary: Service Halls
+	trigger objective2
+	{
+		// Check to make sure spawns haven't been toggled already
+		accum 2 abort_if_not_equal 0
+
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		2	1
+
+		// UI pop-up to alert players
+		wm_announce	"Allies breached the Service Halls!"
+
+		// Check to see if the spawns need toggling
+		trigger game_manager togglespawns
+	}
+
+	trigger togglespawns
+	{
+		// Toggle spawns
+		alertentity alliesfrontspawns
+		alertentity alliesfrontinitspawns
+		alertentity alliesinitrearspawns // D'oh.
+		alertentity alliesrearspawns
+		alertentity axisfrontinitspawns
+		alertentity axisfrontspawns
+		alertentity axisrearspawns
+		alertentity axisrearinitspawns
+
+		// Set accum #2 to 1 so spawns cannot be toggled again
+		accum 2 set 1
+	}
+
+// 3 - Secondary: Main Doors
+	trigger objective3
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		3	1
+
+		// UI pop-up to alert players
+		wm_announce	"Allies destroyed the Main Dam Road Doors!"
+	}
+
+// 4 - Secondary: Generator Controls
+	trigger dam_flagblue
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of checkpoint #1
+		wm_set_objective_status		4	1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Allies capture the Generator Controls Room!"
+	}
+
+	trigger dam_flagred
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Axis takes control of checkpoint #1
+		wm_set_objective_status		4	-1
+
+		// Some kind of UI pop-up to alert players
+		wm_announce	"Axis capture the Generator Controls Room!"
+	}
+
+// 5 - Lower Dam Tunnels Door
+	trigger objective5
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		5	1
+
+		// UI pop-up to alert players
+		wm_announce	"Allies breached the Lower Dam Tunnels!"
+	}
+
+// 6 - Upper Dam Stairwell Door
+	trigger objective6
+	{
+		// Change the objective state internally, so UI can update, etc.
+		// Allied takes control of objective #1
+		wm_set_objective_status		6	1
+
+		// UI pop-up to alert players
+		wm_announce	"Allies breached the Upper Dam Stairwell!"
+	}
+
+}
+
+
+// 1 - Primary: Main Water Regulator
+allied_obj4
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		alertentity endgamerelay1
+		alertentity endgamerelay2
+		alertentity endgamerelay3
+		trigger game_manager objective1
+	}
+}
+
+// 2a - Secondary: Lower Service Halls Door
+allied_obj2
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager objective2
+	}
+}
+
+// 2b - Secondary: Upper Service Halls Door
+allied_obj1
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager objective2
+	}
+}
+
+// 3 - Secondary: Main Doors
+allied_obj3
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager objective3
+	}
+}
+
+// 4 - Secondary: Generator Controls
+dam_flag
+{
+	trigger axis_capture
+	{
+		trigger game_manager dam_flagred
+	}
+
+	trigger allied_capture
+	{
+		trigger game_manager dam_flagblue
+	}
+}
+
+// 5 - Lower Dam Tunnel Door
+lowerdamdoor
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager objective5
+	}
+}
+
+// 6 - Upper Dam Stairwell Door
+damstairwelldoor
+{
+	spawn
+	{
+	}
+
+	death
+	{
+		trigger game_manager objective6
+	}
+}
+
+alliescpspawns
+{
+	spawn
+	{
+		remove
+	}
+}
+
+alliescpinitspawns
+{
+	spawn
+	{
+		remove
+	}
+}
+
+axiscpspawns
+{
+	spawn
+	{
+		remove
+	}
+}
+
+axiscpinitspawns
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint01
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint02
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint03
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint04
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint1_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint2_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint3_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+checkpoint4_base
+{
+	spawn
+	{
+		remove
+	}
+}
+
+
+
